@@ -23,17 +23,17 @@ do {
         break;
         KillProcessCmd($unique_id);
     }
-} while (!($d1af25585916b0062524737f183dfb22 != '.' && $d1af25585916b0062524737f183dfb22 != '..' && is_file(STREAMS_PATH . $d1af25585916b0062524737f183dfb22)));
+} while (!($file != '.' && $file != '..' && is_file(STREAMS_PATH . $file)));
 $A0313ccfdfe24c4c0d6fde7bf7afa9ef = array_values(array_unique(array_map('trim', explode('', file_get_contents($connections)))));
 cli_set_process_title('XtreamCodes[Stream Error Parser]');
-list($stream_id, $errors) = explode('.', $d1af25585916b0062524737f183dfb22);
+list($stream_id, $errors) = explode('.', $file);
 $B8acc4ad0f238617a2c162c2035ce449 = array('the user-agent option is deprecated', 'Last message repeated', 'deprecated', 'Packets poorly interleaved');
-$connections = STREAMS_PATH . $d1af25585916b0062524737f183dfb22;
+$connections = STREAMS_PATH . $file;
 unlink($connections);
 do {
     $unique_id = TMP_DIR . md5(UniqueID() . __FILE__);
     do {
-    } while (!(false !== ($d1af25585916b0062524737f183dfb22 = readdir($handle))));
+    } while (!(false !== ($file = readdir($handle))));
     if ($errors == 'errors') {
         break;
         set_time_limit(0);

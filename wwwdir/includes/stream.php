@@ -14,7 +14,7 @@ class ipTV_stream
             }
         }
     }
-    static function EeeD2f36fa093b45bC2D622ed0231684($stream_id)
+    static function TranscodeBuild($stream_id)
     {
         self::$ipTV_db->query('
                 SELECT * FROM `streams` t1 
@@ -60,37 +60,37 @@ class ipTV_stream
     
         return 2;    
     }
-    static function E0A1164567005185e0818F081674E240($C0379dd6700deb6b1021ed6026f648b9, $Aa894918d6f628c53ace2682189e44d5, $f84c1c6145bb73410b3ea7c0f8b4a9f3 = array(), $A7da0ef4553f5ea253d3907a7c9ef7f0 = '')
+    static function E0A1164567005185e0818F081674E240($InputFileUrl, $serverId, $f84c1c6145bb73410b3ea7c0f8b4a9f3 = array(), $A7da0ef4553f5ea253d3907a7c9ef7f0 = '')
     {
         $stream_max_analyze = abs(intval(ipTV_lib::$settings['stream_max_analyze']));
         $probesize = abs(intval(ipTV_lib::$settings['probesize']));
         $timeout = intval($stream_max_analyze / 1000000) + 5;
-        $command = "{$A7da0ef4553f5ea253d3907a7c9ef7f0}/usr/bin/timeout {$timeout}s " . FFPROBE_PATH . " -probesize {$probesize} -analyzeduration {$stream_max_analyze} " . implode(' ', $f84c1c6145bb73410b3ea7c0f8b4a9f3) . " -i \"{$C0379dd6700deb6b1021ed6026f648b9}\" -v quiet -print_format json -show_streams -show_format";
-        $result = ipTV_servers::RunCommandServer($Aa894918d6f628c53ace2682189e44d5, $command, 'raw', $timeout * 2, $timeout * 2);
-        return self::cCBD051C8a19a02Dc5B6dB256Ae31c07(json_decode($result[$Aa894918d6f628c53ace2682189e44d5], true));
+        $command = "{$A7da0ef4553f5ea253d3907a7c9ef7f0}/usr/bin/timeout {$timeout}s " . FFPROBE_PATH . " -probesize {$probesize} -analyzeduration {$stream_max_analyze} " . implode(' ', $f84c1c6145bb73410b3ea7c0f8b4a9f3) . " -i \"{$InputFileUrl}\" -v quiet -print_format json -show_streams -show_format";
+        $result = ipTV_servers::RunCommandServer($serverId, $command, 'raw', $timeout * 2, $timeout * 2);
+        return self::cCBD051C8a19a02Dc5B6dB256Ae31c07(json_decode($result[$serverId], true));
     }
-    public static function CcBd051c8a19a02dc5B6dB256AE31c07($d8c887d4a07ddc3992dca7f1d440e7de)
+    public static function CcBd051c8a19a02dc5B6dB256AE31c07($resultData)
     {
-        if (!empty($d8c887d4a07ddc3992dca7f1d440e7de)) {
-            if (!empty($d8c887d4a07ddc3992dca7f1d440e7de['codecs'])) {
-                return $d8c887d4a07ddc3992dca7f1d440e7de;
+        if (!empty($resultData)) {
+            if (!empty($resultData['codecs'])) {
+                return $resultData;
             }
             $output = array();
             $output['codecs']['video'] = '';
             $output['codecs']['audio'] = '';
-            $output['container'] = $d8c887d4a07ddc3992dca7f1d440e7de['format']['format_name'];
-            $output['filename'] = $d8c887d4a07ddc3992dca7f1d440e7de['format']['filename'];
-            $output['bitrate'] = !empty($d8c887d4a07ddc3992dca7f1d440e7de['format']['bit_rate']) ? $d8c887d4a07ddc3992dca7f1d440e7de['format']['bit_rate'] : null;
-            $output['of_duration'] = !empty($d8c887d4a07ddc3992dca7f1d440e7de['format']['duration']) ? $d8c887d4a07ddc3992dca7f1d440e7de['format']['duration'] : 'N/A';
-            $output['duration'] = !empty($d8c887d4a07ddc3992dca7f1d440e7de['format']['duration']) ? gmdate('H:i:s', intval($d8c887d4a07ddc3992dca7f1d440e7de['format']['duration'])) : 'N/A';
-            foreach ($d8c887d4a07ddc3992dca7f1d440e7de['streams'] as $E91d1cd26e7223a0f44a617b8ab51d10) {
-                if (!isset($E91d1cd26e7223a0f44a617b8ab51d10['codec_type'])) {
+            $output['container'] = $resultData['format']['format_name'];
+            $output['filename'] = $resultData['format']['filename'];
+            $output['bitrate'] = !empty($resultData['format']['bit_rate']) ? $resultData['format']['bit_rate'] : null;
+            $output['of_duration'] = !empty($resultData['format']['duration']) ? $resultData['format']['duration'] : 'N/A';
+            $output['duration'] = !empty($resultData['format']['duration']) ? gmdate('H:i:s', intval($resultData['format']['duration'])) : 'N/A';
+            foreach ($resultData['streams'] as $streamData) {
+                if (!isset($streamData['codec_type'])) {
                     continue;
                 }
-                if ($E91d1cd26e7223a0f44a617b8ab51d10['codec_type'] != 'audio' && $E91d1cd26e7223a0f44a617b8ab51d10['codec_type'] != 'video') {
+                if ($streamData['codec_type'] != 'audio' && $streamData['codec_type'] != 'video') {
                     continue;
                 }
-                $output['codecs'][$E91d1cd26e7223a0f44a617b8ab51d10['codec_type']] = $E91d1cd26e7223a0f44a617b8ab51d10;
+                $output['codecs'][$streamData['codec_type']] = $streamData;
             }
             return $output;
         }
@@ -158,9 +158,9 @@ class ipTV_stream
             return false;
         }
         $stream['stream_info'] = self::$ipTV_db->get_row();
-        $ecb89a457f7f7216f5564141edfd6269 = json_decode($stream['stream_info']['target_container'], true);
+        $target_container = json_decode($stream['stream_info']['target_container'], true);
         if (json_last_error() === JSON_ERROR_NONE) {
-            $stream['stream_info']['target_container'] = $ecb89a457f7f7216f5564141edfd6269;
+            $stream['stream_info']['target_container'] = $target_container;
         } else {
             $stream['stream_info']['target_container'] = array($stream['stream_info']['target_container']);
         }
