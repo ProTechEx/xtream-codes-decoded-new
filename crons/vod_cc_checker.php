@@ -43,13 +43,13 @@ if (0 < $ipTV_db->num_rows()) {
                     $data['target_container'] = array($data['target_container']);
                 }
                 $data['target_container'] = $data['target_container'][0];
-                $ed147a39fb35be93248b6f1c206a8023 = MOVIES_PATH . $data['stream_id'] . '.' . $data['target_container'];
-                if ($Ec610f8d82d35339f680a3ec9bbc078c = ipTV_stream::e0a1164567005185e0818F081674e240($ed147a39fb35be93248b6f1c206a8023, $data['server_id'])) {
-                    $duration = isset($Ec610f8d82d35339f680a3ec9bbc078c['duration']) ? $Ec610f8d82d35339f680a3ec9bbc078c['duration'] : 0;
-                    sscanf($duration, '%d:%d:%d', $fd8f2c4ad459c3f2b875636e5d3ac6a7, $Bc1d36e0762a7ca0e7cbaddd76686790, $Ba3faa92a82fb2d1bb6bb866cb272fee);
-                    $duration_secs = isset($Ba3faa92a82fb2d1bb6bb866cb272fee) ? $fd8f2c4ad459c3f2b875636e5d3ac6a7 * 3600 + $Bc1d36e0762a7ca0e7cbaddd76686790 * 60 + $Ba3faa92a82fb2d1bb6bb866cb272fee : $fd8f2c4ad459c3f2b875636e5d3ac6a7 * 60 + $Bc1d36e0762a7ca0e7cbaddd76686790;
-                    $Ff876e96994aa5b09ce92e771efe2038 = ipTV_servers::F320b6a3920944D8a18d7949C8aBaCe4($data['server_id'], 'wc -c < ' . $ed147a39fb35be93248b6f1c206a8023, 'raw');
-                    $D2f61e797d44efa20d9d559b2fc2c039 = round($Ff876e96994aa5b09ce92e771efe2038[$data['server_id']] * 0.008 / $duration_secs);
+                $fileURL = MOVIES_PATH . $data['stream_id'] . '.' . $data['target_container'];
+                if ($stream_info = ipTV_stream::e0a1164567005185e0818F081674e240($fileURL, $data['server_id'])) {
+                    $duration = isset($stream_info['duration']) ? $stream_info['duration'] : 0;
+                    sscanf($duration, '%d:%d:%d', $hours, $minutes, $seconds);
+                    $duration_secs = isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;
+                    $resultCommand = ipTV_servers::RunCommandServer($data['server_id'], 'wc -c < ' . $fileURL, 'raw');
+                    $bitrate = round($resultCommand[$data['server_id']] * 0.008 / $duration_secs);
                     $movie_propeties = json_decode($data['movie_propeties'], true);
                     if (!is_array($movie_propeties)) {
                         $movie_propeties = array();
@@ -58,17 +58,17 @@ if (0 < $ipTV_db->num_rows()) {
                         $movie_propeties['duration_secs'] = $duration_secs;
                         $movie_propeties['duration'] = $duration;
                     }
-                    if (!isset($movie_propeties['video']) || $Ec610f8d82d35339f680a3ec9bbc078c['codecs']['video']['codec_name'] != $movie_propeties['video']) {
-                        $movie_propeties['video'] = $Ec610f8d82d35339f680a3ec9bbc078c['codecs']['video'];
+                    if (!isset($movie_propeties['video']) || $stream_info['codecs']['video']['codec_name'] != $movie_propeties['video']) {
+                        $movie_propeties['video'] = $stream_info['codecs']['video'];
                     }
-                    if (!isset($movie_propeties['audio']) || $Ec610f8d82d35339f680a3ec9bbc078c['codecs']['audio']['codec_name'] != $movie_propeties['audio']) {
-                        $movie_propeties['audio'] = $Ec610f8d82d35339f680a3ec9bbc078c['codecs']['audio'];
+                    if (!isset($movie_propeties['audio']) || $stream_info['codecs']['audio']['codec_name'] != $movie_propeties['audio']) {
+                        $movie_propeties['audio'] = $stream_info['codecs']['audio'];
                     }
-                    if (!isset($movie_propeties['bitrate']) || $D2f61e797d44efa20d9d559b2fc2c039 != $movie_propeties['bitrate']) {
-                        $movie_propeties['bitrate'] = $D2f61e797d44efa20d9d559b2fc2c039;
+                    if (!isset($movie_propeties['bitrate']) || $bitrate != $movie_propeties['bitrate']) {
+                        $movie_propeties['bitrate'] = $bitrate;
                     }
                     $ipTV_db->query('UPDATE `streams` SET `movie_propeties` = \'%s\' WHERE `id` = \'%d\'', json_encode($movie_propeties), $data['stream_id']);
-                    $ipTV_db->query('UPDATE `streams_sys` SET `bitrate` = \'%d\',`to_analyze` = 0,`stream_status` = 0,`stream_info` = \'%s\'  WHERE `server_stream_id` = \'%d\'', $D2f61e797d44efa20d9d559b2fc2c039, json_encode($Ec610f8d82d35339f680a3ec9bbc078c), $data['server_stream_id']);
+                    $ipTV_db->query('UPDATE `streams_sys` SET `bitrate` = \'%d\',`to_analyze` = 0,`stream_status` = 0,`stream_info` = \'%s\'  WHERE `server_stream_id` = \'%d\'', $bitrate, json_encode($stream_info), $data['server_stream_id']);
                     echo 'VALID';
                 } else {
                     $ipTV_db->query('UPDATE `streams_sys` SET `to_analyze` = 0,`stream_status` = 1  WHERE `server_stream_id` = \'%d\'', $data['server_stream_id']);

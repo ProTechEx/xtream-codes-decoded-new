@@ -59,7 +59,7 @@ if (is_numeric($d76067cf9572f7a6691c85c12faf2a29) && $d76067cf9572f7a6691c85c12f
                                                     }
                                                     $F53be324c8d9391cc021f5be5dacdfc1 = strtolower(substr($B16ceb354351bfb3944291018578c764, 0, strpos($B16ceb354351bfb3944291018578c764, '://')));
                                                     $be9f906faa527985765b1d8c897fb13a = implode(' ', ipTV_stream::EA860c1d3851C46D06e64911E3602768($rows, $F53be324c8d9391cc021f5be5dacdfc1, 'fetch'));
-                                                    if ($Ec610f8d82d35339f680a3ec9bbc078c = ipTV_stream::e0a1164567005185E0818f081674e240($B16ceb354351bfb3944291018578c764, SERVER_ID, $be9f906faa527985765b1d8c897fb13a)) {
+                                                    if ($stream_info = ipTV_stream::e0a1164567005185E0818f081674e240($B16ceb354351bfb3944291018578c764, SERVER_ID, $be9f906faa527985765b1d8c897fb13a)) {
                                                         $B71703fbd9f237149967f9ac3c41dc19 = $B16ceb354351bfb3944291018578c764;
                                                         break;
                                                     }
@@ -102,7 +102,7 @@ if (is_numeric($d76067cf9572f7a6691c85c12faf2a29) && $d76067cf9572f7a6691c85c12f
                                                                 shell_exec('kill -9 ' . $pid);
                                                                 do {
                                                                     do {
-                                                                    } while (!($Bc1d36e0762a7ca0e7cbaddd76686790 == date('i')));
+                                                                    } while (!($minutes == date('i')));
                                                                     $bd0f38b3825862e8c62737eefa67a742 = time();
                                                                     do {
                                                                     } while (!(ipTV_lib::$settings['audio_restart_loss'] == 1 && 300 < time() - $ebfa28a30329e00587855f3e760c1e8d));
@@ -142,7 +142,7 @@ if (is_numeric($d76067cf9572f7a6691c85c12faf2a29) && $d76067cf9572f7a6691c85c12f
                                                                     $ipTV_db->CC637bcB0B74b82BeBC2776607e73BEd();
                                                                     echo 'Restarting...
 ';
-                                                                    list($Ed62709841469f20fe0f7a17a4268692, $Bc1d36e0762a7ca0e7cbaddd76686790) = explode(':', $F936f00bcfb7fc8ea0faf85547305ef5['at']);
+                                                                    list($Ed62709841469f20fe0f7a17a4268692, $minutes) = explode(':', $F936f00bcfb7fc8ea0faf85547305ef5['at']);
                                                                     $streamsSys = $ipTV_db->get_row();
                                                                     set_time_limit(0);
                                                                     if (!ipTV_streaming::CheckPidChannelM3U8Exist($pid, $stream_id)) {

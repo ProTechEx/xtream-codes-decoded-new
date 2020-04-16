@@ -71,11 +71,11 @@ function C2C6381b9cB137Fe8E0c902B6580806B($playlist, $A029b77634bf5f67a52c7d5b31
             }
             $bb85be39ea05b75c9bffeff236bd9355 = trim(fgets($fp));
             if (stristr($bb85be39ea05b75c9bffeff236bd9355, 'EXTINF')) {
-                list($C76b30d7f4bca2add414f0f3f81feb56, $Ba3faa92a82fb2d1bb6bb866cb272fee) = explode(':', $bb85be39ea05b75c9bffeff236bd9355);
-                $Ba3faa92a82fb2d1bb6bb866cb272fee = rtrim($Ba3faa92a82fb2d1bb6bb866cb272fee, ',');
-                $c5f97e03cbf94a57a805526a8288042f = trim(fgets($fp));
-                if (file_exists(DELAY_STREAM . $c5f97e03cbf94a57a805526a8288042f)) {
-                    $C325d28e238c3a646bd7b095aa1ffa85[] = array('seconds' => $Ba3faa92a82fb2d1bb6bb866cb272fee, 'file' => $c5f97e03cbf94a57a805526a8288042f);
+                list($C76b30d7f4bca2add414f0f3f81feb56, $seconds) = explode(':', $bb85be39ea05b75c9bffeff236bd9355);
+                $seconds = rtrim($seconds, ',');
+                $file = trim(fgets($fp));
+                if (file_exists(DELAY_STREAM . $file)) {
+                    $C325d28e238c3a646bd7b095aa1ffa85[] = array('seconds' => $seconds, 'file' => $file);
                 }
             }
         }
@@ -145,7 +145,7 @@ if (!@$argc) {
                         $Afc586234254c12273d2fecf9c81d7de = DELAY_STREAM . $stream_id . '_.m3u8';
                     }
                 } while (!($ipTV_db->num_rows() <= 0));
-                $Bc1d36e0762a7ca0e7cbaddd76686790 = intval(abs($argv[2]));
+                $minutes = intval(abs($argv[2]));
                 $pid = $streamsSys['delay_pid'];
                 require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
                 $m3u['segments'] = A6906a8e4d8A1101eea6A7BBa589E3C1($Afc586234254c12273d2fecf9c81d7de, $ec0af356ee19bf81bc8dd6124c92ce80, $total_segments);

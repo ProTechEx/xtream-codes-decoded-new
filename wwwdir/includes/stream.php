@@ -176,14 +176,14 @@ class ipTV_stream
             $a3cc823f429df879ce4a238c730d5eb1 = explode(':', $stream_source, 3);
             $dc4f2a655eb3f009a9e741402d02f5fb = $a3cc823f429df879ce4a238c730d5eb1[1];
             if ($dc4f2a655eb3f009a9e741402d02f5fb != SERVER_ID) {
-                $ed147a39fb35be93248b6f1c206a8023 = ipTV_lib::$StreamingServers[$dc4f2a655eb3f009a9e741402d02f5fb]['api_url'] . '&action=getFile&filename=' . urlencode($a3cc823f429df879ce4a238c730d5eb1[2]);
+                $fileURL = ipTV_lib::$StreamingServers[$dc4f2a655eb3f009a9e741402d02f5fb]['api_url'] . '&action=getFile&filename=' . urlencode($a3cc823f429df879ce4a238c730d5eb1[2]);
             } else {
-                $ed147a39fb35be93248b6f1c206a8023 = $a3cc823f429df879ce4a238c730d5eb1[2];
+                $fileURL = $a3cc823f429df879ce4a238c730d5eb1[2];
             }
             $server_protocol = null;
         } else {
             $server_protocol = substr($stream_source, 0, strpos($stream_source, '://'));
-            $ed147a39fb35be93248b6f1c206a8023 = str_replace(' ', '%20', $stream_source);
+            $fileURL = str_replace(' ', '%20', $stream_source);
             $be9f906faa527985765b1d8c897fb13a = implode(' ', self::eA860C1D3851c46D06e64911E3602768($stream['stream_arguments'], $server_protocol, 'fetch'));
         }
 
@@ -256,8 +256,8 @@ class ipTV_stream
             }
             
             $af428179032a83d9ec1df565934b1c89 .= ' >/dev/null 2>' . MOVIES_PATH . $stream_id . '.errors & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
-            $af428179032a83d9ec1df565934b1c89 = str_replace(array('{FETCH_OPTIONS}', '{STREAM_SOURCE}', '{READ_NATIVE}'), array(empty($be9f906faa527985765b1d8c897fb13a) ? '' : $be9f906faa527985765b1d8c897fb13a, $ed147a39fb35be93248b6f1c206a8023, empty($stream['stream_info']['custom_ffmpeg']) ? $feb3f2070e6ccf961f6265281e875b1a : ''), $af428179032a83d9ec1df565934b1c89);
-            $af428179032a83d9ec1df565934b1c89 = "ln -s \"{$ed147a39fb35be93248b6f1c206a8023}\" " . MOVIES_PATH . $stream_id . '.' . pathinfo($ed147a39fb35be93248b6f1c206a8023, PATHINFO_EXTENSION) . ' >/dev/null 2>/dev/null & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
+            $af428179032a83d9ec1df565934b1c89 = str_replace(array('{FETCH_OPTIONS}', '{STREAM_SOURCE}', '{READ_NATIVE}'), array(empty($be9f906faa527985765b1d8c897fb13a) ? '' : $be9f906faa527985765b1d8c897fb13a, $fileURL, empty($stream['stream_info']['custom_ffmpeg']) ? $feb3f2070e6ccf961f6265281e875b1a : ''), $af428179032a83d9ec1df565934b1c89);
+            $af428179032a83d9ec1df565934b1c89 = "ln -s \"{$fileURL}\" " . MOVIES_PATH . $stream_id . '.' . pathinfo($fileURL, PATHINFO_EXTENSION) . ' >/dev/null 2>/dev/null & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
             shell_exec($af428179032a83d9ec1df565934b1c89);
             file_put_contents('/tmp/commands', $af428179032a83d9ec1df565934b1c89 . '', FILE_APPEND);
             $pid = intval(file_get_contents(MOVIES_PATH . $stream_id . '_.pid'));
