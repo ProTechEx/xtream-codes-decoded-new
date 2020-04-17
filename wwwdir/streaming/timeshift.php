@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 register_shutdown_function('shutdown');
 set_time_limit(0);
@@ -23,7 +22,7 @@ $size = 0;
 if (!is_numeric($stream_id) && stristr($stream_id, '_')) {
     list($stream_id, $pos, $size) = explode('_', $stream_id);
     $stream_id = intval($stream_id);
-    $F919000263e8ad8e2791f92d8919f629 = intval($pos);
+    $stream_item = intval($pos);
     $size = intval($size);
     ipTV_lib::$request['extension'] = 'm3u8';
 }
@@ -124,28 +123,27 @@ $duration = intval(ipTV_lib::$request['duration']);
 if (!is_numeric($start)) {
     if (substr_count($start, '-') == 1) {
         list($date, $job) = explode('-', $start);
-        $Ee43d9ecc9cbf5787673058445cfac70 = substr($date, 0, 4);
-        $Dee598827978959770188b0749ebd8dd = substr($date, 4, 2);
-        $b8c55e6036c9c00eccabf835e272cdcb = substr($date, 6, 2);
+        $year = substr($date, 0, 4);
+        $month = substr($date, 4, 2);
+        $day = substr($date, 6, 2);
         $minutes = 0;
         $Ed62709841469f20fe0f7a17a4268692 = $job;
     } else {
         list($date, $job) = explode(':', $start);
-        list($Ee43d9ecc9cbf5787673058445cfac70, $Dee598827978959770188b0749ebd8dd, $b8c55e6036c9c00eccabf835e272cdcb) = explode('-', $date);
+        list($year, $month, $day) = explode('-', $date);
         list($Ed62709841469f20fe0f7a17a4268692, $minutes) = explode('-', $job);
     }
-    $start_timestamp = mktime($Ed62709841469f20fe0f7a17a4268692, $minutes, 0, $Dee598827978959770188b0749ebd8dd, $b8c55e6036c9c00eccabf835e272cdcb, $Ee43d9ecc9cbf5787673058445cfac70);
+    $start_timestamp = mktime($Ed62709841469f20fe0f7a17a4268692, $minutes, 0, $month, $day, $year);
 } else {
     $duration *= 24;
-    $files = array_values(array_filter(explode('
-', shell_exec('ls -tr ' . TV_ARCHIVE . $stream_id . ' | sed -e \'s/\\s\\+/\\n/g\''))));
-    $f9214002d8ab6575c8e959794518358d = $start * 24;
-    if (count($files) >= $f9214002d8ab6575c8e959794518358d) {
-        $f9214002d8ab6575c8e959794518358d = $files[count($files) - $f9214002d8ab6575c8e959794518358d];
+    $files = array_values(array_filter(explode('', shell_exec('ls -tr ' . TV_ARCHIVE . $stream_id . ' | sed -e \'s/\\s\\+/\\n/g\''))));
+    $start_time = $start * 24;
+    if (count($files) >= $start_time) {
+        $start_time = $files[count($files) - $start_time];
     } else {
-        $f9214002d8ab6575c8e959794518358d = $files[0];
+        $start_time = $files[0];
     }
-    if (preg_match('/(.*)-(.*)-(.*):(.*)\\./', $f9214002d8ab6575c8e959794518358d, $matches)) {
+    if (preg_match('/(.*)-(.*)-(.*):(.*)\\./', $start_time, $matches)) {
         $start_timestamp = mktime($matches[4], 0, 0, $matches[2], $matches[3], $matches[1]);
     } else {
         die;
@@ -175,17 +173,17 @@ if (!empty($queue)) {
     $container_priority = 'TV Archive';
     switch (ipTV_lib::$request['extension']) {
         case 'm3u8':
-            if (isset($F919000263e8ad8e2791f92d8919f629)) {
-                if (!empty($queue[$F919000263e8ad8e2791f92d8919f629]) && file_exists($queue[$F919000263e8ad8e2791f92d8919f629]['filename']) && $queue[$F919000263e8ad8e2791f92d8919f629]['filesize'] == $size) {
+            if (isset($stream_item)) {
+                if (!empty($queue[$stream_item]) && file_exists($queue[$stream_item]['filename']) && $queue[$stream_item]['filesize'] == $size) {
                     $B3acfaf2dca0db7e9507c5e640b4ba41 = 0;
-                    $length = $queue[$F919000263e8ad8e2791f92d8919f629]['filesize'];
-                    if ($F919000263e8ad8e2791f92d8919f629 == 0) {
-                        $B3acfaf2dca0db7e9507c5e640b4ba41 = $queue[$F919000263e8ad8e2791f92d8919f629]['filesize'] * 0.3;
-                        $length = $queue[$F919000263e8ad8e2791f92d8919f629]['filesize'] - $B3acfaf2dca0db7e9507c5e640b4ba41;
+                    $length = $queue[$stream_item]['filesize'];
+                    if ($stream_item == 0) {
+                        $B3acfaf2dca0db7e9507c5e640b4ba41 = $queue[$stream_item]['filesize'] * 0.3;
+                        $length = $queue[$stream_item]['filesize'] - $B3acfaf2dca0db7e9507c5e640b4ba41;
                     }
                     header('Content-Type: video/mp2t');
                     header('Content-Length: ' . $length);
-                    $fp = fopen($queue[$F919000263e8ad8e2791f92d8919f629]['filename'], 'r');
+                    $fp = fopen($queue[$stream_item]['filename'], 'r');
                     fseek($fp, $B3acfaf2dca0db7e9507c5e640b4ba41);
                     while (!feof($fp)) {
                         echo stream_get_line($fp, ipTV_lib::$settings['read_buffer_size']);
@@ -211,21 +209,14 @@ if (!empty($queue)) {
                 $ipTV_db->query('UPDATE `user_activity_now` SET `hls_last_read` = \'%d\' WHERE `activity_id` = \'%d\'', time(), $row['activity_id']);
             }
             $ipTV_db->close_mysql();
-            $output = '#EXTM3U
-';
-            $output .= '#EXT-X-VERSION:3
-';
-            $output .= '#EXT-X-TARGETDURATION:60
-';
-            $output .= '#EXT-X-MEDIA-SEQUENCE:0
-';
-            $output .= '#EXT-X-PLAYLIST-TYPE:VOD
-';
+            $output = '#EXTM3U';
+            $output .= '#EXT-X-VERSION:3';
+            $output .= '#EXT-X-TARGETDURATION:60';
+            $output .= '#EXT-X-MEDIA-SEQUENCE:0';
+            $output .= '#EXT-X-PLAYLIST-TYPE:VOD';
             foreach ($queue as $k => $item) {
-                $output .= '#EXTINF:60.0,
-';
-                $output .= "/timeshift/{$username}/{$password}/{$duration}/{$start}/{$stream_id}_{$k}_" . $item['filesize'] . '.ts
-';
+                $output .= '#EXTINF:60.0,';
+                $output .= "/timeshift/{$username}/{$password}/{$duration}/{$start}/{$stream_id}_{$k}_" . $item['filesize'] . '.ts';
             }
             $output .= '#EXT-X-ENDLIST';
             header('Content-Type: application/x-mpegurl');
@@ -282,17 +273,17 @@ if (!empty($queue)) {
             $c77e7ff2c5d6b14d931b3344c54e0cc5 = false;
             $B3acfaf2dca0db7e9507c5e640b4ba41 = 0;
             $F1e7eccb846733c8f188bcdec720f3b7 = 0;
-            $b2ecba26bb0e977abdb88e118b553d51 = $bitrate * 125;
-            $b2ecba26bb0e977abdb88e118b553d51 += $b2ecba26bb0e977abdb88e118b553d51 * ipTV_lib::$settings['vod_bitrate_plus'] * 0.01;
+            $total_bitrate = $bitrate * 125;
+            $total_bitrate += $total_bitrate * ipTV_lib::$settings['vod_bitrate_plus'] * 0.01;
             $time_start = time();
-            $b1125d7ae8a179e8c8a4c80974755bd7 = 0;
+            $movie_file_size = 0;
             $buffer = ipTV_lib::$settings['read_buffer_size'];
             $index = 0;
             $b0cd8de619914d3df89e9fc24acad4e6 = 0;
             if (ipTV_lib::$settings['vod_limit_at'] > 0) {
-                $F6295a8bab3aa6bb5b9c4a70c99ec761 = intval($size * ipTV_lib::$settings['vod_limit_at'] / 100);
+                $vod_limit_at_length = intval($size * ipTV_lib::$settings['vod_limit_at'] / 100);
             } else {
-                $F6295a8bab3aa6bb5b9c4a70c99ec761 = $size;
+                $vod_limit_at_length = $size;
             }
             $A8e591a80910b24673b1a94b8219ab96 = false;
             foreach ($queue as $k => $item) {
@@ -310,21 +301,21 @@ if (!empty($queue)) {
                     $pos = ftell($fp);
                     $response = stream_get_line($fp, $buffer);
                     echo $response;
-                    $b1125d7ae8a179e8c8a4c80974755bd7 += strlen($response);
+                    $movie_file_size += strlen($response);
                     ++$index;
-                    if (!$A8e591a80910b24673b1a94b8219ab96 && $b0cd8de619914d3df89e9fc24acad4e6 * $buffer >= $F6295a8bab3aa6bb5b9c4a70c99ec761) {
+                    if (!$A8e591a80910b24673b1a94b8219ab96 && $b0cd8de619914d3df89e9fc24acad4e6 * $buffer >= $vod_limit_at_length) {
                         $A8e591a80910b24673b1a94b8219ab96 = true;
                     } else {
                         ++$b0cd8de619914d3df89e9fc24acad4e6;
                     }
-                    if ($b2ecba26bb0e977abdb88e118b553d51 > 0 && $A8e591a80910b24673b1a94b8219ab96 && $index >= ceil($b2ecba26bb0e977abdb88e118b553d51 / $buffer)) {
+                    if ($total_bitrate > 0 && $A8e591a80910b24673b1a94b8219ab96 && $index >= ceil($total_bitrate / $buffer)) {
                         sleep(1);
                         $index = 0;
                     }
                     if (time() - $time_start >= 30) {
-                        file_put_contents($connection_speed_file, intval($b1125d7ae8a179e8c8a4c80974755bd7 / 1024 / 30));
+                        file_put_contents($connection_speed_file, intval($movie_file_size / 1024 / 30));
                         $time_start = time();
-                        $b1125d7ae8a179e8c8a4c80974755bd7 = 0;
+                        $movie_file_size = 0;
                     }
                 }
                 if (is_resource($fp)) {

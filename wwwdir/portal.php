@@ -89,7 +89,7 @@ switch ($req_type) {
                 die(json_encode(array('js' => $credits), JSON_PARTIAL_OUTPUT_ON_ERROR));
                 break;
             case 'get_localization':
-                die(json_encode(array('js' => $D2b2ff0086dc5578693175fa65e7a22a[$dev['locale']])));
+                die(json_encode(array('js' => $mag_langs[$dev['locale']])));
                 break;
             case 'log':
                 die(json_encode(array('js' => true)));

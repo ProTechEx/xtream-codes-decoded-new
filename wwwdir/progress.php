@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 ignore_user_abort(true);
 $json = trim(file_get_contents('php://input'));

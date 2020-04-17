@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 if ($_SERVER['REMOTE_ADDR'] != '127.0.0.1') {
     die;

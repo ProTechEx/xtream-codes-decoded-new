@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 require './init.php';
 class SimpleXMLExtended extends SimpleXMLElement

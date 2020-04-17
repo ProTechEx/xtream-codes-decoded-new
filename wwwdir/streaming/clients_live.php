@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 register_shutdown_function('shutdown');
 set_time_limit(0);

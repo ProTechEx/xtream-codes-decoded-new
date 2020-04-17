@@ -150,10 +150,7 @@ class ipTV_stream
     static function startVODstream($stream_id)
     {
         $stream = array();
-        self::$ipTV_db->query('SELECT * FROM `streams` t1 
-                               INNER JOIN `streams_types` t2 ON t2.type_id = t1.type AND t2.live = 0
-                               LEFT JOIN `transcoding_profiles` t4 ON t1.transcode_profile_id = t4.profile_id 
-                               WHERE t1.direct_source = 0 AND t1.id = \'%d\'', $stream_id);
+        self::$ipTV_db->query('SELECT * FROM `streams` t1 INNER JOIN `streams_types` t2 ON t2.type_id = t1.type AND t2.live = 0 LEFT JOIN `transcoding_profiles` t4 ON t1.transcode_profile_id = t4.profile_id WHERE t1.direct_source = 0 AND t1.id = \'%d\'', $stream_id);
         if (self::$ipTV_db->num_rows() <= 0) {
             return false;
         }
@@ -173,12 +170,12 @@ class ipTV_stream
         $stream['stream_arguments'] = self::$ipTV_db->get_rows();
         $stream_source = urldecode(json_decode($stream['stream_info']['stream_source'], true)[0]);
         if (substr($stream_source, 0, 2) == 's:') {
-            $a3cc823f429df879ce4a238c730d5eb1 = explode(':', $stream_source, 3);
-            $dc4f2a655eb3f009a9e741402d02f5fb = $a3cc823f429df879ce4a238c730d5eb1[1];
-            if ($dc4f2a655eb3f009a9e741402d02f5fb != SERVER_ID) {
-                $fileURL = ipTV_lib::$StreamingServers[$dc4f2a655eb3f009a9e741402d02f5fb]['api_url'] . '&action=getFile&filename=' . urlencode($a3cc823f429df879ce4a238c730d5eb1[2]);
+            $source = explode(':', $stream_source, 3);
+            $server_id = $source[1];
+            if ($server_id != SERVER_ID) {
+                $fileURL = ipTV_lib::$StreamingServers[$server_id]['api_url'] . '&action=getFile&filename=' . urlencode($source[2]);
             } else {
-                $fileURL = $a3cc823f429df879ce4a238c730d5eb1[2];
+                $fileURL = $source[2];
             }
             $server_protocol = null;
         } else {
@@ -187,18 +184,18 @@ class ipTV_stream
             $be9f906faa527985765b1d8c897fb13a = implode(' ', self::eA860C1D3851c46D06e64911E3602768($stream['stream_arguments'], $server_protocol, 'fetch'));
         }
 
-        if (!(isset($dc4f2a655eb3f009a9e741402d02f5fb) && $dc4f2a655eb3f009a9e741402d02f5fb == SERVER_ID && $stream['stream_info']['movie_symlink'] == 1)) {
-            $fd91db723d1a9a2b33d242b8850c593f = json_decode($stream['stream_info']['movie_subtitles'], true);
+        if (!(isset($server_id) && $server_id == SERVER_ID && $stream['stream_info']['movie_symlink'] == 1)) {
+            $movie_subtitles = json_decode($stream['stream_info']['movie_subtitles'], true);
             $cded98e960569a6cd37bbbc155e6a799 = '';
             $index = 0;
 
-            while ($index < count($fd91db723d1a9a2b33d242b8850c593f['files'])) {
-                $f26614792b40297912d260cb0d2fa273 = urldecode($fd91db723d1a9a2b33d242b8850c593f['files'][$index]);
-                $d8143e98f4313d9c05f0b2697179789c = $fd91db723d1a9a2b33d242b8850c593f['charset'][$index];
-                if ($fd91db723d1a9a2b33d242b8850c593f['location'] == SERVER_ID) {
+            while ($index < count($movie_subtitles['files'])) {
+                $f26614792b40297912d260cb0d2fa273 = urldecode($movie_subtitles['files'][$index]);
+                $d8143e98f4313d9c05f0b2697179789c = $movie_subtitles['charset'][$index];
+                if ($movie_subtitles['location'] == SERVER_ID) {
                     $cded98e960569a6cd37bbbc155e6a799 .= "-sub_charenc \"{$d8143e98f4313d9c05f0b2697179789c}\" -i \"{$f26614792b40297912d260cb0d2fa273}\" ";
                 } else {
-                    $cded98e960569a6cd37bbbc155e6a799 .= "-sub_charenc \"{$d8143e98f4313d9c05f0b2697179789c}\" -i \"" . ipTV_lib::$StreamingServers[$fd91db723d1a9a2b33d242b8850c593f['location']]['api_url'] . '&action=getFile&filename=' . urlencode($f26614792b40297912d260cb0d2fa273) . '" ';
+                    $cded98e960569a6cd37bbbc155e6a799 .= "-sub_charenc \"{$d8143e98f4313d9c05f0b2697179789c}\" -i \"" . ipTV_lib::$StreamingServers[$movie_subtitles['location']]['api_url'] . '&action=getFile&filename=' . urlencode($f26614792b40297912d260cb0d2fa273) . '" ';
                 }
                 $index++;
             }
@@ -206,15 +203,15 @@ class ipTV_stream
             $f2130ba0f82d2308b743977b2ba5eaa9 = '';
             $index = 0;
 
-            while ($index < count($fd91db723d1a9a2b33d242b8850c593f['files'])) {
-                $f2130ba0f82d2308b743977b2ba5eaa9 .= '-map ' . ($index + 1) . " -metadata:s:s:{$index} title={$fd91db723d1a9a2b33d242b8850c593f['names'][$index]} -metadata:s:s:{$index} language={$fd91db723d1a9a2b33d242b8850c593f['names'][$index]} ";
+            while ($index < count($movie_subtitles['files'])) {
+                $f2130ba0f82d2308b743977b2ba5eaa9 .= '-map ' . ($index + 1) . " -metadata:s:s:{$index} title={$movie_subtitles['names'][$index]} -metadata:s:s:{$index} language={$movie_subtitles['names'][$index]} ";
                 $index++;
             }
 
-            $af428179032a83d9ec1df565934b1c89 = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel warning -err_detect ignore_err {FETCH_OPTIONS} -fflags +genpts -async 1 {READ_NATIVE} -i \"{STREAM_SOURCE}\" {$cded98e960569a6cd37bbbc155e6a799}";
-            $feb3f2070e6ccf961f6265281e875b1a = '';
+            $command = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel warning -err_detect ignore_err {FETCH_OPTIONS} -fflags +genpts -async 1 {READ_NATIVE} -i \"{STREAM_SOURCE}\" {$cded98e960569a6cd37bbbc155e6a799}";
+            $read_native = '';
             if ($stream['stream_info']['read_native'] == 1) {
-                $feb3f2070e6ccf961f6265281e875b1a = '-re';
+                $read_native = '-re';
             }
             if ($stream['stream_info']['enable_transcode'] == 1) {
                 if ($stream['stream_info']['transcode_profile_id'] == -1) {
@@ -251,15 +248,15 @@ class ipTV_stream
                 } else {
                     $stream['stream_info']['transcode_attributes']['-scodec'] = 'copy';
                 }
-                $af428179032a83d9ec1df565934b1c89 .= implode(' ', self::F6664c80BDe3e9bbe2c12CEb906D5A11($stream['stream_info']['transcode_attributes'])) . ' ';
-                $af428179032a83d9ec1df565934b1c89 .= $cd7bafd64552e6ca58318f09800cbddd;
+                $command .= implode(' ', self::F6664c80BDe3e9bbe2c12CEb906D5A11($stream['stream_info']['transcode_attributes'])) . ' ';
+                $command .= $cd7bafd64552e6ca58318f09800cbddd;
             }
             
-            $af428179032a83d9ec1df565934b1c89 .= ' >/dev/null 2>' . MOVIES_PATH . $stream_id . '.errors & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
-            $af428179032a83d9ec1df565934b1c89 = str_replace(array('{FETCH_OPTIONS}', '{STREAM_SOURCE}', '{READ_NATIVE}'), array(empty($be9f906faa527985765b1d8c897fb13a) ? '' : $be9f906faa527985765b1d8c897fb13a, $fileURL, empty($stream['stream_info']['custom_ffmpeg']) ? $feb3f2070e6ccf961f6265281e875b1a : ''), $af428179032a83d9ec1df565934b1c89);
-            $af428179032a83d9ec1df565934b1c89 = "ln -s \"{$fileURL}\" " . MOVIES_PATH . $stream_id . '.' . pathinfo($fileURL, PATHINFO_EXTENSION) . ' >/dev/null 2>/dev/null & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
-            shell_exec($af428179032a83d9ec1df565934b1c89);
-            file_put_contents('/tmp/commands', $af428179032a83d9ec1df565934b1c89 . '', FILE_APPEND);
+            $command .= ' >/dev/null 2>' . MOVIES_PATH . $stream_id . '.errors & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
+            $command = str_replace(array('{FETCH_OPTIONS}', '{STREAM_SOURCE}', '{READ_NATIVE}'), array(empty($be9f906faa527985765b1d8c897fb13a) ? '' : $be9f906faa527985765b1d8c897fb13a, $fileURL, empty($stream['stream_info']['custom_ffmpeg']) ? $read_native : ''), $command);
+            $command = "ln -s \"{$fileURL}\" " . MOVIES_PATH . $stream_id . '.' . pathinfo($fileURL, PATHINFO_EXTENSION) . ' >/dev/null 2>/dev/null & echo $! > ' . MOVIES_PATH . $stream_id . '_.pid';
+            shell_exec($command);
+            file_put_contents('/tmp/commands', $command . '', FILE_APPEND);
             $pid = intval(file_get_contents(MOVIES_PATH . $stream_id . '_.pid'));
             self::$ipTV_db->query('UPDATE `streams_sys` SET `to_analyze` = 1,`stream_started` = \'%d\',`stream_status` = 0,`pid` = \'%d\' WHERE `stream_id` = \'%d\' AND `server_id` = \'%d\'', time(), $pid, $stream_id, SERVER_ID);
             return $pid;
@@ -352,7 +349,7 @@ class ipTV_stream
                 $Ee11a0d09ece7de916fbc0b2ca0136a3 = json_decode($stream['stream_info']['external_push'], true);
                 $progress = 'http://127.0.0.1:' . ipTV_lib::$StreamingServers[SERVER_ID]['http_broadcast_port'] . "/progress.php?stream_id={$stream_id}";
                 if (empty($stream['stream_info']['custom_ffmpeg'])) {
-                    $af428179032a83d9ec1df565934b1c89 = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel warning -err_detect ignore_err {FETCH_OPTIONS} {GEN_PTS} {READ_NATIVE} -probesize {$probesize} -analyzeduration {$stream_max_analyze} -progress \"{$progress}\" {CONCAT} -i \"{STREAM_SOURCE}\" ";
+                    $command = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel warning -err_detect ignore_err {FETCH_OPTIONS} {GEN_PTS} {READ_NATIVE} -probesize {$probesize} -analyzeduration {$stream_max_analyze} -progress \"{$progress}\" {CONCAT} -i \"{STREAM_SOURCE}\" ";
                     if (($stream['stream_info']['stream_all'] == 1)) {
                         $map = '-map 0 -copy_unknown ';
                     }
@@ -369,9 +366,9 @@ class ipTV_stream
                     } else {
                         $e9652f3db39531a69b91900690d5d064 = '-nofix_dts -start_at_zero -copyts -vsync 0 -correct_ts_overflow 0 -avoid_negative_ts disabled -max_interleave_delta 0';
                     }
-                    $feb3f2070e6ccf961f6265281e875b1a = '';
+                    $read_native = '';
                     if ($stream['server_info']['parent_id'] == 0 && ($stream['stream_info']['read_native'] == 1 or stristr($e49460014c491accfafaa768ea84cd9c['container'], 'hls') or empty($server_protocol) or stristr($e49460014c491accfafaa768ea84cd9c['container'], 'mp4') or stristr($e49460014c491accfafaa768ea84cd9c['container'], 'matroska'))) {
-                        $feb3f2070e6ccf961f6265281e875b1a = '-re';
+                        $read_native = '-re';
                     }
                     if ($stream['server_info']['parent_id'] == 0 and $stream['stream_info']['enable_transcode'] == 1 and $stream['stream_info']['type_key'] != 'created_live') {
                         if ($stream['stream_info']['transcode_profile_id'] == -1) {
@@ -405,8 +402,8 @@ class ipTV_stream
                     if (!($stream['stream_info']['delay_minutes'] > 0 && $stream['server_info']['parent_id'] == 0)) {
                         foreach ($A7c6258649492b26d77c75c60c793409 as $output_key => $f72c3a34155eca511d79ca3671e1063f) {
                             foreach ($f72c3a34155eca511d79ca3671e1063f as $cd7bafd64552e6ca58318f09800cbddd) {
-                                $af428179032a83d9ec1df565934b1c89 .= implode(' ', self::f6664c80bde3e9BBe2c12ceb906d5a11($stream['stream_info']['transcode_attributes'])) . ' ';
-                                $af428179032a83d9ec1df565934b1c89 .= $cd7bafd64552e6ca58318f09800cbddd;
+                                $command .= implode(' ', self::f6664c80bde3e9BBe2c12ceb906d5a11($stream['stream_info']['transcode_attributes'])) . ' ';
+                                $command .= $cd7bafd64552e6ca58318f09800cbddd;
                             }
                         }
                     } else {
@@ -429,8 +426,8 @@ class ipTV_stream
                                 copy(DELAY_STREAM . $stream_id . '_.m3u8', DELAY_STREAM . $stream_id . '_.m3u8_old');
                             }
                         }
-                        $af428179032a83d9ec1df565934b1c89 .= implode(' ', self::f6664C80BDe3E9bbe2c12ceB906D5A11($stream['stream_info']['transcode_attributes'])) . ' ';
-                        $af428179032a83d9ec1df565934b1c89 .= '{MAP} -individual_header_trailer 0 -f segment -segment_format mpegts -segment_time ' . ipTV_lib::$SegmentsSettings['seg_time'] . ' -segment_list_size ' . $stream['stream_info']['delay_minutes'] * 6 . " -segment_start_number {$segment_start_number} -segment_format_options \"mpegts_flags=+initial_discontinuity:mpegts_copyts=1\" -segment_list_type m3u8 -segment_list_flags +live+delete -segment_list \"" . DELAY_STREAM . $stream_id . '_.m3u8" "' . DELAY_STREAM . $stream_id . '_%d.ts" ';
+                        $command .= implode(' ', self::f6664C80BDe3E9bbe2c12ceB906D5A11($stream['stream_info']['transcode_attributes'])) . ' ';
+                        $command .= '{MAP} -individual_header_trailer 0 -f segment -segment_format mpegts -segment_time ' . ipTV_lib::$SegmentsSettings['seg_time'] . ' -segment_list_size ' . $stream['stream_info']['delay_minutes'] * 6 . " -segment_start_number {$segment_start_number} -segment_format_options \"mpegts_flags=+initial_discontinuity:mpegts_copyts=1\" -segment_list_type m3u8 -segment_list_flags +live+delete -segment_list \"" . DELAY_STREAM . $stream_id . '_.m3u8" "' . DELAY_STREAM . $stream_id . '_%d.ts" ';
                         $delay_minutes = $stream['stream_info']['delay_minutes'] * 60;
                         if ($segment_start_number > 0) {
                             $delay_minutes -= ($segment_start_number - 1) * 10;
@@ -439,9 +436,9 @@ class ipTV_stream
                             }
                         }
                     }
-                    $af428179032a83d9ec1df565934b1c89 .= ' >/dev/null 2>>' . STREAMS_PATH . $stream_id . '.errors & echo $! > ' . STREAMS_PATH . $stream_id . '_.pid';
-                    $af428179032a83d9ec1df565934b1c89 = str_replace(array('{INPUT}', '{FETCH_OPTIONS}', '{GEN_PTS}', '{STREAM_SOURCE}', '{MAP}', '{READ_NATIVE}', '{CONCAT}', '{AAC_FILTER}'), array("\"{$stream_source}\"", empty($stream['stream_info']['custom_ffmpeg']) ? $be9f906faa527985765b1d8c897fb13a : '', empty($stream['stream_info']['custom_ffmpeg']) ? $e9652f3db39531a69b91900690d5d064 : '', $stream_source, empty($stream['stream_info']['custom_ffmpeg']) ? $map : '', empty($stream['stream_info']['custom_ffmpeg']) ? $feb3f2070e6ccf961f6265281e875b1a : '', $stream['stream_info']['type_key'] == 'created_live' && $stream['server_info']['parent_id'] == 0 ? '-safe 0 -f concat' : '', !stristr($e49460014c491accfafaa768ea84cd9c['container'], 'flv') && $e49460014c491accfafaa768ea84cd9c['codecs']['audio']['codec_name'] == 'aac' && $stream['stream_info']['transcode_attributes']['-acodec'] == 'copy' ? '-bsf:a aac_adtstoasc' : ''), $af428179032a83d9ec1df565934b1c89);
-                    shell_exec($af428179032a83d9ec1df565934b1c89);
+                    $command .= ' >/dev/null 2>>' . STREAMS_PATH . $stream_id . '.errors & echo $! > ' . STREAMS_PATH . $stream_id . '_.pid';
+                    $command = str_replace(array('{INPUT}', '{FETCH_OPTIONS}', '{GEN_PTS}', '{STREAM_SOURCE}', '{MAP}', '{READ_NATIVE}', '{CONCAT}', '{AAC_FILTER}'), array("\"{$stream_source}\"", empty($stream['stream_info']['custom_ffmpeg']) ? $be9f906faa527985765b1d8c897fb13a : '', empty($stream['stream_info']['custom_ffmpeg']) ? $e9652f3db39531a69b91900690d5d064 : '', $stream_source, empty($stream['stream_info']['custom_ffmpeg']) ? $map : '', empty($stream['stream_info']['custom_ffmpeg']) ? $read_native : '', $stream['stream_info']['type_key'] == 'created_live' && $stream['server_info']['parent_id'] == 0 ? '-safe 0 -f concat' : '', !stristr($e49460014c491accfafaa768ea84cd9c['container'], 'flv') && $e49460014c491accfafaa768ea84cd9c['codecs']['audio']['codec_name'] == 'aac' && $stream['stream_info']['transcode_attributes']['-acodec'] == 'copy' ? '-bsf:a aac_adtstoasc' : ''), $command);
+                    shell_exec($command);
                     $pid = $pid = intval(file_get_contents(STREAMS_PATH . $stream_id . '_.pid'));
                     if (SERVER_ID == $stream['stream_info']['tv_archive_server_id']) {
                         shell_exec(PHP_BIN . ' ' . TOOLS_PATH . 'archive.php ' . $stream_id . ' >/dev/null 2>/dev/null & echo $!');
@@ -455,7 +452,7 @@ class ipTV_stream
                     
                 } else {
                     $stream['stream_info']['transcode_attributes'] = array();
-                    $af428179032a83d9ec1df565934b1c89 = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel quiet {$d1006c7cc041221972025137b5112b7d} -progress \"{$progress}\" " . $stream['stream_info']['custom_ffmpeg'];
+                    $command = FFMPEG_PATH . " -y -nostdin -hide_banner -loglevel quiet {$d1006c7cc041221972025137b5112b7d} -progress \"{$progress}\" " . $stream['stream_info']['custom_ffmpeg'];
                 }
             }
         }
@@ -467,11 +464,11 @@ class ipTV_stream
         }
         return 1;
     }
-    public static function EA860c1D3851C46d06E64911E3602768($c31311861794ebdea68a9eab6a24fd6d, $server_protocol, $type)
+    public static function EA860c1D3851C46d06E64911E3602768($stream_arguments, $server_protocol, $type)
     {
         $Eb6e347d24315f277ac38240a6589dd0 = array();
-        if (!empty($c31311861794ebdea68a9eab6a24fd6d)) {
-            foreach ($c31311861794ebdea68a9eab6a24fd6d as $f091df572e6d2b79881acbf4e5500a7e => $e380987e83a27088358f65f47ff3117f) {
+        if (!empty($stream_arguments)) {
+            foreach ($stream_arguments as $f091df572e6d2b79881acbf4e5500a7e => $e380987e83a27088358f65f47ff3117f) {
                 if ($e380987e83a27088358f65f47ff3117f['argument_cat'] != $type) {
                     continue;
                 }
@@ -514,25 +511,25 @@ class ipTV_stream
         uasort($B54918193a6b3b39c547eb9486c4c2ff, array(__CLASS__, 'customOrder'));
         return array_map('trim', array_values(array_filter($B54918193a6b3b39c547eb9486c4c2ff)));
     }
-    public static function ParseStreamURL($D849b6918b9e10195509dc8a824f49eb)
+    public static function ParseStreamURL($url)
     {
-        $server_protocol = strtolower(substr($D849b6918b9e10195509dc8a824f49eb, 0, 4));
+        $server_protocol = strtolower(substr($url, 0, 4));
         if (($server_protocol == 'rtmp')) {
-            if (stristr($D849b6918b9e10195509dc8a824f49eb, '$OPT')) {
-                $b853b956930a081396b7a6beb8404265 = 'rtmp://$OPT:rtmp-raw=';
-                $D849b6918b9e10195509dc8a824f49eb = trim(substr($D849b6918b9e10195509dc8a824f49eb, stripos($D849b6918b9e10195509dc8a824f49eb, $b853b956930a081396b7a6beb8404265) + strlen($b853b956930a081396b7a6beb8404265)));
+            if (stristr($url, '$OPT')) {
+                $rtmp_url = 'rtmp://$OPT:rtmp-raw=';
+                $url = trim(substr($url, stripos($url, $rtmp_url) + strlen($rtmp_url)));
             }
-            $D849b6918b9e10195509dc8a824f49eb .= ' live=1 timeout=10';
+            $url .= ' live=1 timeout=10';
         }
         else if ($server_protocol == 'http') {
-            $d412be7a00d131e9be20aca9526c741f = array('youtube.com', 'youtu.be', 'livestream.com', 'ustream.tv', 'twitch.tv', 'vimeo.com', 'facebook.com', 'dailymotion.com', 'cnn.com', 'edition.cnn.com', 'youporn.com', 'pornhub.com', 'youjizz.com', 'xvideos.com', 'redtube.com', 'ruleporn.com', 'pornotube.com', 'skysports.com', 'screencast.com', 'xhamster.com', 'pornhd.com', 'pornktube.com', 'tube8.com', 'vporn.com', 'giniko.com', 'xtube.com');
-            $E8cb364637af05312e9ad4e7c0680ce2 = str_ireplace('www.', '', parse_url($D849b6918b9e10195509dc8a824f49eb, PHP_URL_HOST));
-            if (in_array($E8cb364637af05312e9ad4e7c0680ce2, $d412be7a00d131e9be20aca9526c741f)) {
-                $urls = trim(shell_exec(YOUTUBE_PATH . " \"{$D849b6918b9e10195509dc8a824f49eb}\" -q --get-url --skip-download -f best"));
-                $D849b6918b9e10195509dc8a824f49eb = explode('', $urls)[0];
+            $hosts = array('youtube.com', 'youtu.be', 'livestream.com', 'ustream.tv', 'twitch.tv', 'vimeo.com', 'facebook.com', 'dailymotion.com', 'cnn.com', 'edition.cnn.com', 'youporn.com', 'pornhub.com', 'youjizz.com', 'xvideos.com', 'redtube.com', 'ruleporn.com', 'pornotube.com', 'skysports.com', 'screencast.com', 'xhamster.com', 'pornhd.com', 'pornktube.com', 'tube8.com', 'vporn.com', 'giniko.com', 'xtube.com');
+            $host = str_ireplace('www.', '', parse_url($url, PHP_URL_HOST));
+            if (in_array($host, $hosts)) {
+                $urls = trim(shell_exec(YOUTUBE_PATH . " \"{$url}\" -q --get-url --skip-download -f best"));
+                $url = explode('', $urls)[0];
             }
         }
-        return $D849b6918b9e10195509dc8a824f49eb;
+        return $url;
     }
 }
 ?>

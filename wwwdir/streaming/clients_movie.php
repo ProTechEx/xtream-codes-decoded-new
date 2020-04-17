@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 register_shutdown_function('shutdown');
 set_time_limit(0);
@@ -151,12 +150,12 @@ if ($user_info = ipTV_streaming::GetUserInfo(null, $username, $password, true, f
             default:
                 header('Content-Type: application/octet-stream');
         }
-        $b2ecba26bb0e977abdb88e118b553d51 = !empty($channel_info['bitrate']) ? $channel_info['bitrate'] * 125 : 0;
-        $b2ecba26bb0e977abdb88e118b553d51 += $b2ecba26bb0e977abdb88e118b553d51 * ipTV_lib::$settings['vod_bitrate_plus'] * 0.01;
-        $E6dd23f358d554b9a74e3ae676bc8c9b = MOVIES_PATH . $stream_id . '.' . $extension;
-        if (file_exists($E6dd23f358d554b9a74e3ae676bc8c9b)) {
-            $fp = @fopen($E6dd23f358d554b9a74e3ae676bc8c9b, 'rb');
-            $size = filesize($E6dd23f358d554b9a74e3ae676bc8c9b);
+        $total_bitrate = !empty($channel_info['bitrate']) ? $channel_info['bitrate'] * 125 : 0;
+        $total_bitrate += $total_bitrate * ipTV_lib::$settings['vod_bitrate_plus'] * 0.01;
+        $movie_file = MOVIES_PATH . $stream_id . '.' . $extension;
+        if (file_exists($movie_file)) {
+            $fp = @fopen($movie_file, 'rb');
+            $size = filesize($movie_file);
             $length = $size;
             $start = 0;
             $end = $size - 1;
@@ -192,38 +191,36 @@ if ($user_info = ipTV_streaming::GetUserInfo(null, $username, $password, true, f
             header("Content-Range: bytes {$start}-{$end}/{$size}");
             header('Content-Length: ' . $length);
             $time_start = time();
-            $b1125d7ae8a179e8c8a4c80974755bd7 = 0;
+            $movie_file_size = 0;
             $buffer = ipTV_lib::$settings['read_buffer_size'];
             $index = 0;
             $b0cd8de619914d3df89e9fc24acad4e6 = 0;
             if (ipTV_lib::$settings['vod_limit_at'] > 0) {
-                $F6295a8bab3aa6bb5b9c4a70c99ec761 = intval($length * ipTV_lib::$settings['vod_limit_at'] / 100);
+                $vod_limit_at_length = intval($length * ipTV_lib::$settings['vod_limit_at'] / 100);
             } else {
-                $F6295a8bab3aa6bb5b9c4a70c99ec761 = $length;
+                $vod_limit_at_length = $length;
             }
             $A8e591a80910b24673b1a94b8219ab96 = false;
-            //D7b3f9d60519ce61242d1941a0c77b14:
             while (!feof($fp) && ($p = ftell($fp)) <= $end) {
                 $response = stream_get_line($fp, $buffer);
                 ++$index;
-                if (!$A8e591a80910b24673b1a94b8219ab96 && $b0cd8de619914d3df89e9fc24acad4e6 * $buffer >= $F6295a8bab3aa6bb5b9c4a70c99ec761) {
+                if (!$A8e591a80910b24673b1a94b8219ab96 && $b0cd8de619914d3df89e9fc24acad4e6 * $buffer >= $vod_limit_at_length) {
                     $A8e591a80910b24673b1a94b8219ab96 = true;
                 } else {
                     ++$b0cd8de619914d3df89e9fc24acad4e6;
                 }
                 echo $response;
-                $b1125d7ae8a179e8c8a4c80974755bd7 += strlen($response);
+                $movie_file_size += strlen($response);
                 if (time() - $time_start >= 30) {
-                    file_put_contents($connection_speed_file, intval($b1125d7ae8a179e8c8a4c80974755bd7 / 1024 / 30));
+                    file_put_contents($connection_speed_file, intval($movie_file_size / 1024 / 30));
                     $time_start = time();
-                    $b1125d7ae8a179e8c8a4c80974755bd7 = 0;
+                    $movie_file_size = 0;
                 }
-                if ($b2ecba26bb0e977abdb88e118b553d51 > 0 && $A8e591a80910b24673b1a94b8219ab96 && $index >= ceil($b2ecba26bb0e977abdb88e118b553d51 / $buffer)) {
+                if ($total_bitrate > 0 && $A8e591a80910b24673b1a94b8219ab96 && $index >= ceil($total_bitrate / $buffer)) {
                     sleep(1);
                     $index = 0;
                 }
             }
-            //f51f3eda71805424934a7449ccdb08d8:
             fclose($fp);
             die;
         }
