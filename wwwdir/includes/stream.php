@@ -16,10 +16,7 @@ class ipTV_stream
     }
     static function TranscodeBuild($stream_id)
     {
-        self::$ipTV_db->query('
-                SELECT * FROM `streams` t1 
-                LEFT JOIN `transcoding_profiles` t3 ON t1.transcode_profile_id = t3.profile_id
-                WHERE t1.`id` = \'%d\'', $stream_id);
+        self::$ipTV_db->query('SELECT * FROM `streams` t1 LEFT JOIN `transcoding_profiles` t3 ON t1.transcode_profile_id = t3.profile_id WHERE t1.`id` = \'%d\'', $stream_id);
         $stream = self::$ipTV_db->get_row();
         $stream['cchannel_rsources'] = json_decode($stream['cchannel_rsources'], true);
         $stream['stream_source'] = json_decode($stream['stream_source'], true);
@@ -99,14 +96,14 @@ class ipTV_stream
     static function stopStream($stream_id, $reset_stream_sys = false)
     {
         if (file_exists("/home/xtreamcodes/iptv_xtream_codes/streams/{$stream_id}.monitor")) {
-            $e9d30118d498945b35ee33aa90ed9822 = intval(file_get_contents("/home/xtreamcodes/iptv_xtream_codes/streams/{$stream_id}.monitor"));
-            if (self::F198E55FC8231996C50ee056Ac4226E0($e9d30118d498945b35ee33aa90ed9822, "XtreamCodes[{$stream_id}]")) {
-                posix_kill($e9d30118d498945b35ee33aa90ed9822, 9);
+            $pid_stream_monitor = intval(file_get_contents("/home/xtreamcodes/iptv_xtream_codes/streams/{$stream_id}.monitor"));
+            if (self::FindPidByValue($pid_stream_monitor, "XtreamCodes[{$stream_id}]")) {
+                posix_kill($pid_stream_monitor, 9);
             }
         }
         if (file_exists(STREAMS_PATH . $stream_id . '_.pid')) {
             $pid = intval(file_get_contents(STREAMS_PATH . $stream_id . '_.pid'));
-            if (self::F198E55fC8231996C50eE056aC4226e0($pid, "{$stream_id}_.m3u8")) {
+            if (self::FindPidByValue($pid, "{$stream_id}_.m3u8")) {
                 posix_kill($pid, 9);
             }
         }
@@ -116,7 +113,7 @@ class ipTV_stream
             self::$ipTV_db->query('UPDATE `streams_sys` SET `bitrate` = NULL,`current_source` = NULL,`to_analyze` = 0,`pid` = NULL,`stream_started` = NULL,`stream_info` = NULL,`stream_status` = 0,`monitor_pid` = NULL WHERE `stream_id` = \'%d\' AND `server_id` = \'%d\'', $stream_id, SERVER_ID);
         }
     }
-    static function F198e55Fc8231996C50eE056ac4226e0($pid, $search)
+    static function FindPidByValue($pid, $search)
     {
         if (file_exists('/proc/' . $pid)) {
             $value = trim(file_get_contents("/proc/{$pid}/cmdline"));
@@ -468,39 +465,39 @@ class ipTV_stream
     {
         $Eb6e347d24315f277ac38240a6589dd0 = array();
         if (!empty($stream_arguments)) {
-            foreach ($stream_arguments as $f091df572e6d2b79881acbf4e5500a7e => $e380987e83a27088358f65f47ff3117f) {
-                if ($e380987e83a27088358f65f47ff3117f['argument_cat'] != $type) {
+            foreach ($stream_arguments as $f091df572e6d2b79881acbf4e5500a7e => $attribute) {
+                if ($attribute['argument_cat'] != $type) {
                     continue;
                 }
-                if (!is_null($e380987e83a27088358f65f47ff3117f['argument_wprotocol']) && !stristr($server_protocol, $e380987e83a27088358f65f47ff3117f['argument_wprotocol']) && !is_null($server_protocol)) {
+                if (!is_null($attribute['argument_wprotocol']) && !stristr($server_protocol, $attribute['argument_wprotocol']) && !is_null($server_protocol)) {
                     continue;
                 }
-                if ($e380987e83a27088358f65f47ff3117f['argument_type'] == 'text') {
-                    $Eb6e347d24315f277ac38240a6589dd0[] = sprintf($e380987e83a27088358f65f47ff3117f['argument_cmd'], $e380987e83a27088358f65f47ff3117f['value']);
+                if ($attribute['argument_type'] == 'text') {
+                    $Eb6e347d24315f277ac38240a6589dd0[] = sprintf($attribute['argument_cmd'], $attribute['value']);
                 } else {
-                    $Eb6e347d24315f277ac38240a6589dd0[] = $e380987e83a27088358f65f47ff3117f['argument_cmd'];
+                    $Eb6e347d24315f277ac38240a6589dd0[] = $attribute['argument_cmd'];
                 }
             }
         }
         return $Eb6e347d24315f277ac38240a6589dd0;
     }
-    public static function F6664c80bdE3E9BBe2C12CeB906D5a11($Bddd92df0619e485304556731bb7ca2f)
+    public static function F6664c80bdE3E9BBe2C12CeB906D5a11($transcode_attributes)
     {
         $e80cbed8655f14b141bd53699dbbdc10 = array();
-        foreach ($Bddd92df0619e485304556731bb7ca2f as $k => $e380987e83a27088358f65f47ff3117f) {
-            if (isset($e380987e83a27088358f65f47ff3117f['cmd'])) {
-                $Bddd92df0619e485304556731bb7ca2f[$k] = $e380987e83a27088358f65f47ff3117f = $e380987e83a27088358f65f47ff3117f['cmd'];
+        foreach ($transcode_attributes as $k => $attribute) {
+            if (isset($attribute['cmd'])) {
+                $transcode_attributes[$k] = $attribute = $attribute['cmd'];
             }
-            if (preg_match('/-filter_complex "(.*?)"/', $e380987e83a27088358f65f47ff3117f, $matches)) {
-                $Bddd92df0619e485304556731bb7ca2f[$k] = trim(str_replace($matches[0], '', $Bddd92df0619e485304556731bb7ca2f[$k]));
+            if (preg_match('/-filter_complex "(.*?)"/', $attribute, $matches)) {
+                $transcode_attributes[$k] = trim(str_replace($matches[0], '', $transcode_attributes[$k]));
                 $e80cbed8655f14b141bd53699dbbdc10[] = $matches[1];
             }
         }
         if (!empty($e80cbed8655f14b141bd53699dbbdc10)) {
-            $Bddd92df0619e485304556731bb7ca2f[] = '-filter_complex "' . implode(',', $e80cbed8655f14b141bd53699dbbdc10) . '"';
+            $transcode_attributes[] = '-filter_complex "' . implode(',', $e80cbed8655f14b141bd53699dbbdc10) . '"';
         }
         $B54918193a6b3b39c547eb9486c4c2ff = array();
-        foreach ($Bddd92df0619e485304556731bb7ca2f as $k => $e7ddd0b219bd2e9b7547185c8bccb6a9) {
+        foreach ($transcode_attributes as $k => $e7ddd0b219bd2e9b7547185c8bccb6a9) {
             if (is_numeric($k)) {
                 $B54918193a6b3b39c547eb9486c4c2ff[] = $e7ddd0b219bd2e9b7547185c8bccb6a9;
             } else {
