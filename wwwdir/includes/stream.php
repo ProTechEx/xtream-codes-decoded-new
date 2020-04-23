@@ -319,15 +319,15 @@ class ipTV_stream
                     }
                 }
 
-                $F7b03a1f7467c01c6ea18452d9a5202f = $bb1b9dfc97454460e165348212675779 <= RESTART_TAKE_CACHE ? true : false;
-                if (!$F7b03a1f7467c01c6ea18452d9a5202f) {
+                $set = $bb1b9dfc97454460e165348212675779 <= RESTART_TAKE_CACHE ? true : false;
+                if (!$set) {
                     self::($sources);
                 }
                 foreach ($sources as $source) {
                     $stream_source = self::ParseStreamURL($source);
                     $server_protocol = strtolower(substr($stream_source, 0, strpos($stream_source, '://')));
                     $be9f906faa527985765b1d8c897fb13a = implode(' ', self::Ea860c1d3851C46D06E64911E3602768($stream['stream_arguments'], $server_protocol, 'fetch'));
-                    if ($F7b03a1f7467c01c6ea18452d9a5202f && file_exists(STREAMS_PATH . md5($stream_source))) {
+                    if ($set && file_exists(STREAMS_PATH . md5($stream_source))) {
                         $e49460014c491accfafaa768ea84cd9c = json_decode(file_get_contents(STREAMS_PATH . md5($stream_source)), true);
                         break;
                     }
@@ -342,7 +342,7 @@ class ipTV_stream
                     }
                     return 0;
                 }
-                if (!$F7b03a1f7467c01c6ea18452d9a5202f) {
+                if (!$set) {
                     file_put_contents(STREAMS_PATH . md5($stream_source), json_encode($e49460014c491accfafaa768ea84cd9c));
                 }
                 $e49460014c491accfafaa768ea84cd9c = self::Ccbd051c8A19a02dC5B6db256Ae31C07($e49460014c491accfafaa768ea84cd9c);

@@ -23,7 +23,6 @@ if (ipTV_lib::$settings['use_buffer'] == 0) {
     header('X-Accel-Buffering: no');
 }
 header('Access-Control-Allow-Origin: *');
-$e8d12aa38d4899d2d4d12fbd8d047fb0 = '';
 $play_token = empty(ipTV_lib::$request['play_token']) ? null : ipTV_lib::$request['play_token'];
 if ($user_info = ipTV_streaming::GetUserInfo(null, $username, $password, true, false, true, array(), false, $user_ip, $user_agent, array(), $play_token, $stream_id)) {
     if (isset($user_info['mag_invalid_token'])) {

@@ -5,9 +5,9 @@ class Epg
     public $validEpg = false;
     public $epgSource;
     public $from_cache = false;
-    function __construct($result, $F7b03a1f7467c01c6ea18452d9a5202f = false)
+    function __construct($result, $set = false)
     {
-        $this->eCe97C9Fe9A866e5B522e80E43B30997($result, $F7b03a1f7467c01c6ea18452d9a5202f);
+        $this->eCe97C9Fe9A866e5B522e80E43B30997($result, $set);
     }
     public function a53d17AB9BD15890715e7947C1766953()
     {
@@ -46,7 +46,7 @@ class Epg
             if (!array_key_exists($channel_id, $streams)) {
                 continue;
             }
-            $ff153ef1378baba89ae1f33db3ad14bf = $Fe7c1055293ad23ed4b69b91fd845cac = '';
+            $desc_data = $Fe7c1055293ad23ed4b69b91fd845cac = '';
             $start = strtotime(strval($item->attributes()->start));
             $stop = strtotime(strval($item->attributes()->stop));
             if (empty($item->title)) {
@@ -54,33 +54,33 @@ class Epg
             }
             $title = $item->title;
             if (is_object($title)) {
-                $A2b796e1bb70296d4bed8ce34ce5691b = false;
+                $epg_lang_check = false;
                 foreach ($title as $data) {
                     if ($data->attributes()->lang == $streams[$channel_id]['epg_lang']) {
-                        $A2b796e1bb70296d4bed8ce34ce5691b = true;
-                        $ff153ef1378baba89ae1f33db3ad14bf = base64_encode($data);
+                        $epg_lang_check = true;
+                        $desc_data = base64_encode($data);
                         break;
                     }
                 }
-                if (!$A2b796e1bb70296d4bed8ce34ce5691b) {
-                    $ff153ef1378baba89ae1f33db3ad14bf = base64_encode($title[0]);
+                if (!$epg_lang_check) {
+                    $desc_data = base64_encode($title[0]);
                 }
             } else {
-                $ff153ef1378baba89ae1f33db3ad14bf = base64_encode($title);
+                $desc_data = base64_encode($title);
             }
             if (!empty($item->desc)) {
-                $d1294148eb5638fe195478093cd6b93b = $item->desc;
-                if (is_object($d1294148eb5638fe195478093cd6b93b)) {
-                    $A2b796e1bb70296d4bed8ce34ce5691b = false;
-                    foreach ($d1294148eb5638fe195478093cd6b93b as $d4c3c80b508f5d00d05316e7aa0858de) {
-                        if ($d4c3c80b508f5d00d05316e7aa0858de->attributes()->lang == $streams[$channel_id]['epg_lang']) {
-                            $A2b796e1bb70296d4bed8ce34ce5691b = true;
-                            $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($d4c3c80b508f5d00d05316e7aa0858de);
+                $desc = $item->desc;
+                if (is_object($desc)) {
+                    $epg_lang_check = false;
+                    foreach ($desc as $data) {
+                        if ($data->attributes()->lang == $streams[$channel_id]['epg_lang']) {
+                            $epg_lang_check = true;
+                            $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($data);
                             break;
                         }
                     }
-                    if (!$A2b796e1bb70296d4bed8ce34ce5691b) {
-                        $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($d1294148eb5638fe195478093cd6b93b[0]);
+                    if (!$epg_lang_check) {
+                        $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($desc[0]);
                     }
                 } else {
                     $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($item->desc);
@@ -90,11 +90,11 @@ class Epg
             $streams[$channel_id]['epg_lang'] = addslashes($streams[$channel_id]['epg_lang']);
             $date_start = date('Y-m-d H:i:s', $start);
             $date_stop = date('Y-m-d H:i:s', $stop);
-            $f8f0da104ec866e0d96947b27214d28a[] = '(\'' . $ipTV_db->escape($E2b08d0d6a74fb4e054587ee7c572a9f) . '\', \'' . $ipTV_db->escape($channel_id) . '\', \'' . $ipTV_db->escape($date_start) . '\', \'' . $ipTV_db->escape($date_stop) . '\', \'' . $ipTV_db->escape($streams[$channel_id]['epg_lang']) . '\', \'' . $ipTV_db->escape($ff153ef1378baba89ae1f33db3ad14bf) . '\', \'' . $ipTV_db->escape($Fe7c1055293ad23ed4b69b91fd845cac) . '\')';
+            $f8f0da104ec866e0d96947b27214d28a[] = '(\'' . $ipTV_db->escape($E2b08d0d6a74fb4e054587ee7c572a9f) . '\', \'' . $ipTV_db->escape($channel_id) . '\', \'' . $ipTV_db->escape($date_start) . '\', \'' . $ipTV_db->escape($date_stop) . '\', \'' . $ipTV_db->escape($streams[$channel_id]['epg_lang']) . '\', \'' . $ipTV_db->escape($desc_data) . '\', \'' . $ipTV_db->escape($Fe7c1055293ad23ed4b69b91fd845cac) . '\')';
         }
         return !empty($f8f0da104ec866e0d96947b27214d28a) ? $f8f0da104ec866e0d96947b27214d28a : false;
     }
-    public function ece97c9FE9a866e5B522E80e43b30997($result, $F7b03a1f7467c01c6ea18452d9a5202f)
+    public function ece97c9FE9a866e5B522E80e43b30997($result, $set)
     {
         $errors = pathinfo($result, PATHINFO_EXTENSION);
         if (($errors == 'gz')) {

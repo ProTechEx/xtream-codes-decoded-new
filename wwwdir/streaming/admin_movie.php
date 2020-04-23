@@ -4,7 +4,6 @@ register_shutdown_function('shutdown');
 set_time_limit(0);
 require '../init.php';
 $streaming_block = true;
-$E824497a502b6e5dd609c0acb45697c7 = false;
 $size = 0;
 $activity_id = 0;
 $user_ip = $_SERVER['REMOTE_ADDR'];
@@ -20,17 +19,12 @@ $streaming_block = false;
 $stream = pathinfo(ipTV_lib::$request['stream']);
 $stream_id = intval($stream['filename']);
 $extension = $stream['extension'];
-$ipTV_db->query('
-                    SELECT t1.*
-                    FROM `streams` t1
-                    INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.pid IS NOT NULL AND t2.server_id = \'%d\'
-                    INNER JOIN `streams_types` t3 ON t3.type_id = t1.type AND t3.type_key = \'movie\'
-                    WHERE t1.`id` = \'%d\'', SERVER_ID, $stream_id);
+$ipTV_db->query('SELECT t1.* FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.pid IS NOT NULL AND t2.server_id = \'%d\' INNER JOIN `streams_types` t3 ON t3.type_id = t1.type AND t3.type_key = \'movie\' WHERE t1.`id` = \'%d\'', SERVER_ID, $stream_id);
 if (ipTV_lib::$settings['use_buffer'] == 0) {
     header('X-Accel-Buffering: no');
 }
 if ($ipTV_db->num_rows() > 0) {
-    $Fc8c2b91e5fde0dc817c47293478940a = $ipTV_db->get_row();
+    $stream = $ipTV_db->get_row();
     $ipTV_db->close_mysql();
     $movie_file = MOVIES_PATH . $stream_id . '.' . $extension;
     if (file_exists($movie_file)) {
@@ -99,12 +93,10 @@ if ($ipTV_db->num_rows() > 0) {
         header("Content-Range: bytes {$start}-{$end}/{$size}");
         header('Content-Length: ' . $length);
         $buffer = 1024 * 8;
-        //a28124da1815e0b87ed638f4cd963820:
         while (!feof($fp) && ($p = ftell($fp)) <= $end) {
             $response = stream_get_line($fp, $buffer);
             echo $response;
         }
-        //d851a70aee5237a74fe51c01ffb880e3:
         fclose($fp);
         die;
     }

@@ -1,5 +1,4 @@
 <?php
-/*Rev:26.09.18r0*/
 
 header('Access-Control-Allow-Origin: *');
 register_shutdown_function('shutdown');
@@ -17,10 +16,7 @@ if (empty(ipTV_lib::$request['stream']) || empty(ipTV_lib::$request['extension']
 $password = ipTV_lib::$settings['live_streaming_pass'];
 $stream_id = intval(ipTV_lib::$request['stream']);
 $extension = ipTV_lib::$request['extension'];
-$ipTV_db->query('SELECT * 
-                    FROM `streams` t1
-                    INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = \'%d\'
-                    WHERE t1.`id` = \'%d\'', SERVER_ID, $stream_id);
+$ipTV_db->query('SELECT * FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = \'%d\' WHERE t1.`id` = \'%d\'', SERVER_ID, $stream_id);
 if (ipTV_lib::$settings['use_buffer'] == 0) {
     header('X-Accel-Buffering: no');
 }
@@ -67,32 +63,26 @@ if ($ipTV_db->num_rows() > 0) {
                     $current = -1;
                 } else {
                     die;
-                    //aec5a54201786b5bbe6573ae6b2aad85:
                     if (is_array($segmentsOfPlaylist)) {
                         foreach ($segmentsOfPlaylist as $segment) {
                             readfile(STREAMS_PATH . $segment);
-                            A6ef4ccb381ec4a6b0c8c43e66d85825:
                         }
                         preg_match('/_(.*)\\./', array_pop($segmentsOfPlaylist), $pregmatches);
                         $current = $pregmatches[1];
                     } else {
                         $current = $segmentsOfPlaylist;
                     }
-                    //goto f4dce90a7951c4692e46b0303393f7a4;
                 }
                 $fails = 0;
                 $total_failed_tries = ipTV_lib::$SegmentsSettings['seg_time'] * 2;
-                //d9f748ce9f53402f322a8d21a1736957:
                 while (true) {
                     $segment_file = sprintf('%d_%d.ts', $stream_id, $current + 1);
                     $nextsegment_file = sprintf('%d_%d.ts', $stream_id, $current + 2);
                     $totalItems = 0;
-                    E2548032ad734253ca2cc2ebbf6269b0:
                     while (!file_exists(STREAMS_PATH . $segment_file) && $totalItems <= $total_failed_tries * 10) {
                         usleep(100000);
                         ++$totalItems;
                     }
-                    //eeb90bfe4c28dc9b04209fedc32ff5a3:
                     if (!file_exists(STREAMS_PATH . $segment_file)) {
                         die;
                     }
@@ -101,7 +91,6 @@ if ($ipTV_db->num_rows() > 0) {
                     }
                     $fails = 0;
                     $fp = fopen(STREAMS_PATH . $segment_file, 'r');
-                    //D2d24958a6f2888a694ed67016b06229:
                     while ($fails <= $total_failed_tries && !file_exists(STREAMS_PATH . $nextsegment_file)) {
                         $data = stream_get_line($fp, ipTV_lib::$settings['read_buffer_size']);
                         if (empty($data)) {
@@ -115,7 +104,6 @@ if ($ipTV_db->num_rows() > 0) {
                         echo $data;
                         $fails = 0;
                     }
-                    //ef89f77163837836531e009abed1ed0a:
                     if (ipTV_streaming::ps_running($channel_info['pid'], FFMPEG_PATH) && $fails <= $total_failed_tries && file_exists(STREAMS_PATH . $segment_file) && is_resource($fp)) {
                         $size = filesize(STREAMS_PATH . $segment_file);
                         $line = $size - ftell($fp);
@@ -129,7 +117,6 @@ if ($ipTV_db->num_rows() > 0) {
                     $fails = 0;
                     $current++;
                 }
-                //a10c19f796b5df61809eb2fe8ea2a035:
             }
     }
 } else {
