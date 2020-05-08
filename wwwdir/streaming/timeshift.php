@@ -279,13 +279,13 @@ if (!empty($queue)) {
             $movie_file_size = 0;
             $buffer = ipTV_lib::$settings['read_buffer_size'];
             $index = 0;
-            $b0cd8de619914d3df89e9fc24acad4e6 = 0;
+            $limit_count = 0;
             if (ipTV_lib::$settings['vod_limit_at'] > 0) {
                 $vod_limit_at_length = intval($size * ipTV_lib::$settings['vod_limit_at'] / 100);
             } else {
                 $vod_limit_at_length = $size;
             }
-            $A8e591a80910b24673b1a94b8219ab96 = false;
+            $check_buffer = false;
             foreach ($queue as $k => $item) {
                 $total_file_size += $item['filesize'];
                 if (!$c77e7ff2c5d6b14d931b3344c54e0cc5 && $b3fcd87510baa9521882b459861dcb64 > 0) {
@@ -303,12 +303,12 @@ if (!empty($queue)) {
                     echo $response;
                     $movie_file_size += strlen($response);
                     ++$index;
-                    if (!$A8e591a80910b24673b1a94b8219ab96 && $b0cd8de619914d3df89e9fc24acad4e6 * $buffer >= $vod_limit_at_length) {
-                        $A8e591a80910b24673b1a94b8219ab96 = true;
+                    if (!$check_buffer && $limit_count * $buffer >= $vod_limit_at_length) {
+                        $check_buffer = true;
                     } else {
-                        ++$b0cd8de619914d3df89e9fc24acad4e6;
+                        ++$limit_count;
                     }
-                    if ($total_bitrate > 0 && $A8e591a80910b24673b1a94b8219ab96 && $index >= ceil($total_bitrate / $buffer)) {
+                    if ($total_bitrate > 0 && $check_buffer && $index >= ceil($total_bitrate / $buffer)) {
                         sleep(1);
                         $index = 0;
                     }

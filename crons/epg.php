@@ -7,9 +7,9 @@ class Epg
     public $from_cache = false;
     function __construct($result, $set = false)
     {
-        $this->eCe97C9Fe9A866e5B522e80E43B30997($result, $set);
+        $this->LoadEpg($result, $set);
     }
-    public function a53d17AB9BD15890715e7947C1766953()
+    public function getData()
     {
         $output = array();
         foreach ($this->epgSource->channel as $item) {
@@ -37,16 +37,16 @@ class Epg
         }
         return $output;
     }
-    public function a0b90401c3241088846A84F33c2B50fF($E2b08d0d6a74fb4e054587ee7c572a9f, $streams)
+    public function getProgrammes($epg_id, $streams)
     {
         global $ipTV_db;
-        $f8f0da104ec866e0d96947b27214d28a = array();
+        $list = array();
         foreach ($this->epgSource->programme as $item) {
             $channel_id = (string) $item->attributes()->channel;
             if (!array_key_exists($channel_id, $streams)) {
                 continue;
             }
-            $desc_data = $Fe7c1055293ad23ed4b69b91fd845cac = '';
+            $desc_data = $data = '';
             $start = strtotime(strval($item->attributes()->start));
             $stop = strtotime(strval($item->attributes()->stop));
             if (empty($item->title)) {
@@ -75,26 +75,26 @@ class Epg
                     foreach ($desc as $data) {
                         if ($data->attributes()->lang == $streams[$channel_id]['epg_lang']) {
                             $epg_lang_check = true;
-                            $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($data);
+                            $data = base64_encode($data);
                             break;
                         }
                     }
                     if (!$epg_lang_check) {
-                        $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($desc[0]);
+                        $data = base64_encode($desc[0]);
                     }
                 } else {
-                    $Fe7c1055293ad23ed4b69b91fd845cac = base64_encode($item->desc);
+                    $data = base64_encode($item->desc);
                 }
             }
             $channel_id = addslashes($channel_id);
             $streams[$channel_id]['epg_lang'] = addslashes($streams[$channel_id]['epg_lang']);
             $date_start = date('Y-m-d H:i:s', $start);
             $date_stop = date('Y-m-d H:i:s', $stop);
-            $f8f0da104ec866e0d96947b27214d28a[] = '(\'' . $ipTV_db->escape($E2b08d0d6a74fb4e054587ee7c572a9f) . '\', \'' . $ipTV_db->escape($channel_id) . '\', \'' . $ipTV_db->escape($date_start) . '\', \'' . $ipTV_db->escape($date_stop) . '\', \'' . $ipTV_db->escape($streams[$channel_id]['epg_lang']) . '\', \'' . $ipTV_db->escape($desc_data) . '\', \'' . $ipTV_db->escape($Fe7c1055293ad23ed4b69b91fd845cac) . '\')';
+            $list[] = '(\'' . $ipTV_db->escape($epg_id) . '\', \'' . $ipTV_db->escape($channel_id) . '\', \'' . $ipTV_db->escape($date_start) . '\', \'' . $ipTV_db->escape($date_stop) . '\', \'' . $ipTV_db->escape($streams[$channel_id]['epg_lang']) . '\', \'' . $ipTV_db->escape($desc_data) . '\', \'' . $ipTV_db->escape($data) . '\')';
         }
-        return !empty($f8f0da104ec866e0d96947b27214d28a) ? $f8f0da104ec866e0d96947b27214d28a : false;
+        return !empty($list) ? $list : false;
     }
-    public function ece97c9FE9a866e5B522E80e43b30997($result, $set)
+    public function LoadEpg($result, $set)
     {
         $errors = pathinfo($result, PATHINFO_EXTENSION);
         if (($errors == 'gz')) {
