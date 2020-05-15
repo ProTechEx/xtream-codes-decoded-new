@@ -19,8 +19,8 @@ while (!false) {
     if (!$ipTV_db->query('SELECT `firewall` FROM settings')) {
         break;
     }
-    $a9b72a17757137f71123eee7cf9a0b25 = $ipTV_db->get_row();
-    if ($a9b72a17757137f71123eee7cf9a0b25['firewall'] == 0) {
+    $settings = $ipTV_db->get_row();
+    if ($settings['firewall'] == 0) {
         file_put_contents(TMP_DIR . 'd52d7d1df4f329bda8b2d9f67fa5d846', 1);
         unlink(TMP_DIR . '5a9ccab64e61d9af12baa7d4011acc1a');
         die;
